@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Home Task</string>
+    <string name="textADD">Добавить нового клиента</string>
+    <string name="surname">Введите фамилию</string>
+    <string name="name">Введите имя</string>
+    <string name="patronymic">Введите отчество</string>
+    <string name="date">Выберите дату рождения</string>
+    <string name="url">Введите URL</string>
+</resources>
