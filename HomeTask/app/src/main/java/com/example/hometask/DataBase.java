@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 public class DataBase extends SQLiteOpenHelper {
 
     public static final String DATABASE_NAME = "dab.db";
-    public static final int DATABASE_VERSION = 2;
+    public static final int DATABASE_VERSION = 3;
     public static final String TABLE_NAME = "Contacts";
 
     public static final String KEY_ID = "ID";
@@ -23,7 +23,7 @@ public class DataBase extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE " + TABLE_NAME + " ( _id INTEGER PRIMARY KEY AUTOINCREMENT, SURNAME TEXT, NAME TEXT, PATRONYMIC TEXT, POSITION TEXT, DATA TEXT )");
+        db.execSQL("CREATE TABLE " + TABLE_NAME + " ( ID INTEGER PRIMARY KEY AUTOINCREMENT, SURNAME TEXT, NAME TEXT, PATRONYMIC TEXT, POSITION TEXT, DATA TEXT )");
     }
 
     @Override

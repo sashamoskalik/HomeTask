@@ -24,6 +24,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
@@ -47,11 +48,11 @@ public class AddActivity extends AppCompatActivity {
     Cursor cursor;
     ContentValues contentValues;
 
-    public static final String EXTRA_SURNAME = "surname";
+    public static final String EXTRA_CLIENT_ID = "id";
 
     String[] array = {"Junior", "Middle", "Senior"};
     String item;
-    long id = -1;
+    int id = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,27 +80,7 @@ public class AddActivity extends AppCompatActivity {
         contentValues = new ContentValues();
 
 
-        Bundle extras = getIntent().getExtras();
-        if (extras != null){
-            id = extras.getLong("id");
-        }
-        Log.d("ID", String.valueOf(id));
 
-        if (id > 0){
-            String Surname = (String) getIntent().getExtras().get(EXTRA_SURNAME);
-            Log.d("SURNAME", Surname);
-            cursor = db.rawQuery("select * from " +  DataBase.TABLE_NAME + " where " + DataBase.KEY_ID + "=?", new String[]{String.valueOf(id)});
-            cursor.moveToFirst();
-            surname.setText(cursor.getString(1));
-            name.setText(cursor.getString(2));
-            patronymic.setText(cursor.getString(3));
-            dateText.setText(cursor.getString(5));
-            Image("/data/data/com.example.hometask/app_imageDir", String.valueOf(cursor.getInt(0)));
-            cursor.close();
-        }
-        else {
-            delete.setVisibility(View.GONE);
-        }
         setInitialDate();
     }
 
@@ -114,6 +95,24 @@ public class AddActivity extends AppCompatActivity {
         db = dataBase.getWritableDatabase();
 
         cursor = db.rawQuery("select * from Contacts", null);
+
+        final int id = (int) getIntent().getExtras().get(EXTRA_CLIENT_ID);
+
+        if (id > 0){
+            Cursor cursor = db.query(DataBase.TABLE_NAME, null, "ID = ?", new String[]{String.valueOf(id)}, null, null, null);
+            if (cursor.moveToFirst()) {
+                surname.setText(cursor.getString(1));
+                name.setText(cursor.getString(2));
+                patronymic.setText(cursor.getString(3));
+                dateText.setText(cursor.getString(5));
+                Image("/data/data/com.example.hometask/app_imageDir", String.valueOf(cursor.getInt(0)));
+                Log.d("ID", String.valueOf(id));
+            }
+            cursor.close();
+        }
+        else {
+            delete.setVisibility(View.GONE);
+        }
 
         AdapterView.OnItemSelectedListener onItemSelectedListener = new AdapterView.OnItemSelectedListener() {
             @Override
@@ -152,21 +151,28 @@ public class AddActivity extends AppCompatActivity {
                         contentValues.put(DataBase.KEY_POSITION, item);
                         if (id > 0){
                             db.update("Contacts", contentValues, DataBase.KEY_ID + "=" + id, null);
+                            InternalStorage(bitmap, String.valueOf(id));
+                            Toast toast = Toast.makeText(context, "Контакт изменен", Toast.LENGTH_LONG);
+                            toast.show();
                         }
                         else {
                             long rowID =db.insert("Contacts", null, contentValues);
                             InternalStorage(bitmap, String.valueOf(rowID));
                             Log.d("ID", String.valueOf(rowID));
+                            Toast toast = Toast.makeText(context, "Новый контакт добавлен", Toast.LENGTH_LONG);
+                            toast.show();
                         }
-                        Intent intent = new Intent(AddActivity.this, MainActivity.class);
-                        startActivity(intent);
+                        goHome();
                         break;
                     case R.id.delete:
                         db.delete(DataBase.TABLE_NAME, "ID = ?", new String[]{String.valueOf(id)});
+                        Log.d("DELETEID", String.valueOf(id));
                         File file = new File("/data/data/com.example.hometask/app_imageDir", id + ".png");
                         file.delete();
-                        Intent intent1 = new Intent(AddActivity.this, MainActivity.class);
-                        startActivity(intent1);
+                        Toast toast = Toast.makeText(context, "Контакт удален", Toast.LENGTH_LONG);
+                        toast.show();
+                        goHome();
+                        break;
                 }
             }
         };
@@ -222,5 +228,12 @@ public class AddActivity extends AppCompatActivity {
         File file = new File(directory, name + ".png");
         Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
         image.setImageBitmap(bitmap);
+    }
+    private void goHome(){
+        // закрываем подключение
+        db.close();
+        // переход к главной activity
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
     }
 }
