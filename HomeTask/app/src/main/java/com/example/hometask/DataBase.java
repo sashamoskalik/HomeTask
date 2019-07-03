@@ -4,31 +4,48 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-public class DataBase extends SQLiteOpenHelper {
+import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.RuntimeExceptionDao;
+import com.j256.ormlite.support.ConnectionSource;
+import com.j256.ormlite.table.TableUtils;
 
-    public static final String DATABASE_NAME = "dab.db";
-    public static final int DATABASE_VERSION = 3;
-    public static final String TABLE_NAME = "Contacts";
+import java.sql.SQLException;
 
-    public static final String KEY_ID = "ID";
-    public static final String KEY_SURNAME = "SURNAME";
-    public static final String KEY_NAME = "NAME";
-    public static final String KEY_PATRONYMIC = "PATRONYMIC";
-    public static final String KEY_POSITION = "POSITION";
-    public static final String KEY_DATA = "DATA";
+public class DataBase extends OrmLiteSqliteOpenHelper {
 
-    public DataBase(Context context) {
+    private static final String DATABASE_NAME = "orm.db";
+    private static final int DATABASE_VERSION = 1;
+
+    private RuntimeExceptionDao<Client, Integer> runtimeExceptionDao = null;
+
+    public DataBase(Context context){
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     @Override
-    public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE " + TABLE_NAME + " ( ID INTEGER PRIMARY KEY AUTOINCREMENT, SURNAME TEXT, NAME TEXT, PATRONYMIC TEXT, POSITION TEXT, DATA TEXT )");
+    public void onCreate(SQLiteDatabase sqLiteDatabase, ConnectionSource connectionSource) {
+        try {
+            TableUtils.createTable(connectionSource, Client.class);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
-        onCreate(db);
+    public void onUpgrade(SQLiteDatabase sqLiteDatabase, ConnectionSource connectionSource, int i, int i1) {
+        try {
+            TableUtils.dropTable(connectionSource, Client.class, true);
+            onCreate(sqLiteDatabase, connectionSource);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public RuntimeExceptionDao<Client, Integer> getRuntimeExceptionDao(){
+        if (runtimeExceptionDao == null){
+            runtimeExceptionDao = getRuntimeExceptionDao(Client.class);
+        }
+        return runtimeExceptionDao;
     }
 }

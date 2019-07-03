@@ -26,12 +26,19 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.j256.ormlite.android.apptools.OpenHelperManager;
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.RuntimeExceptionDao;
+import com.j256.ormlite.stmt.UpdateBuilder;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.List;
 
 public class AddActivity extends AppCompatActivity {
 
@@ -41,18 +48,14 @@ public class AddActivity extends AppCompatActivity {
     TextView dateText;
     ImageView image;
     Calendar dateAndTime = Calendar.getInstance();
-    private Context context;
     String URL;
     DataBase dataBase;
-    SQLiteDatabase db;
-    Cursor cursor;
-    ContentValues contentValues;
+    Context context;
 
     public static final String EXTRA_CLIENT_ID = "id";
 
     String[] array = {"Junior", "Middle", "Senior"};
     String item;
-    int id = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,15 +74,9 @@ public class AddActivity extends AppCompatActivity {
         save = (Button) findViewById(R.id.save);
         delete = (Button) findViewById(R.id.delete);
 
+        context = AddActivity.this;
 
         image = (ImageView) findViewById(R.id.image);
-
-        context = AddActivity.this;
-        dataBase = new DataBase(getApplicationContext());
-        db = dataBase.getWritableDatabase();
-        contentValues = new ContentValues();
-
-
 
         setInitialDate();
     }
@@ -88,31 +85,104 @@ public class AddActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        final int id = (int) getIntent().getExtras().get(EXTRA_CLIENT_ID);
+        dataBase = OpenHelperManager.getHelper(this, DataBase.class);
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item, array);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         position.setAdapter(adapter);
 
-        db = dataBase.getWritableDatabase();
+        View.OnClickListener onClickListener = new View.OnClickListener() {
 
-        cursor = db.rawQuery("select * from Contacts", null);
+            @Override
+            public void onClick(View v) {
+                RuntimeExceptionDao<Client, Integer> runtimeExceptionDao = dataBase.getRuntimeExceptionDao();
+                String surnameText = surname.getText().toString();
+                String nameText = name.getText().toString();
+                String patronymicText = patronymic.getText().toString();
+                String urlText = url.getText().toString();
+                String word = "[a-zA-Zа-яА-Я]+";
 
-        final int id = (int) getIntent().getExtras().get(EXTRA_CLIENT_ID);
+                switch (v.getId()){
+                    case R.id.download:
+                        URL = url.getText().toString();
+                        Log.d("URL", URL);
+                        Picasso.with(context)
+                                .load(URL)
+                                .into(image);
+                        break;
 
-        if (id > 0){
-            Cursor cursor = db.query(DataBase.TABLE_NAME, null, "ID = ?", new String[]{String.valueOf(id)}, null, null, null);
-            if (cursor.moveToFirst()) {
-                surname.setText(cursor.getString(1));
-                name.setText(cursor.getString(2));
-                patronymic.setText(cursor.getString(3));
-                dateText.setText(cursor.getString(5));
-                Image("/data/data/com.example.hometask/app_imageDir", String.valueOf(cursor.getInt(0)));
-                Log.d("ID", String.valueOf(id));
+                    case R.id.save:
+
+                        if (surnameText.length() > 0 && surnameText.matches(word)) {
+                        }
+                        else {
+                            Toast toast = Toast.makeText(context, "Проверьте фамилию", Toast.LENGTH_LONG);
+                            toast.show();
+                            break;
+                        }
+                        if (nameText.length() > 0 && nameText.matches(word)) {
+                        }
+                        else {
+                            Toast toast = Toast.makeText(context, "Проверьте имя", Toast.LENGTH_LONG);
+                            toast.show();
+                            break;
+                        }
+                        if (patronymicText.length() > 0 && patronymicText.matches(word)) {
+                        }
+                        else {
+                            Toast toast = Toast.makeText(context, "Проверьте отчество", Toast.LENGTH_LONG);
+                            toast.show();
+                            break;
+                        }
+
+                       if (id > 0){
+                           BitmapDrawable bitmapDrawable = (BitmapDrawable) image.getDrawable();
+                           Bitmap bitmap = bitmapDrawable.getBitmap();
+                           UpdateBuilder<Client, Integer> updateBuilder = runtimeExceptionDao.updateBuilder();
+                           try {
+                               updateBuilder.where().eq("id", id);
+                               updateBuilder.updateColumnValue("surname", surname.getText().toString());
+                               updateBuilder.updateColumnValue("name", name.getText().toString());
+                               updateBuilder.updateColumnValue("patronymic", patronymic.getText().toString());
+                               updateBuilder.updateColumnValue("position", item);
+                               updateBuilder.updateColumnValue("date", dateText.getText().toString());
+                               updateBuilder.update();
+                           } catch (SQLException e) {
+                               e.printStackTrace();
+                           }
+                           if (urlText.length() != 0){
+                               InternalStorage(bitmap, String.valueOf(id));
+                           }
+                       }
+                       else {
+                           if (urlText.length() == 0){
+                               Toast toast = Toast.makeText(context, "Введите url", Toast.LENGTH_LONG);
+                               toast.show();
+                               break;
+                           }
+                           BitmapDrawable bitmapDrawable = (BitmapDrawable) image.getDrawable();
+                           Bitmap bitmap = bitmapDrawable.getBitmap();
+                           runtimeExceptionDao.create(new Client(surname.getText().toString(), name.getText().toString(),
+                                   patronymic.getText().toString(), item, dateText.getText().toString()));
+                           List<Client> clients = runtimeExceptionDao.queryForAll();
+                           InternalStorage(bitmap, String.valueOf(clients.get(clients.size()-1).getId()));
+                       }
+                        goHome();
+                       break;
+
+                    case R.id.delete:
+                        Log.d("DELETEID", String.valueOf(id));
+                        runtimeExceptionDao.deleteById(id);
+                        File file = new File("/data/data/com.example.hometask/app_imageDir", id + ".png");
+                        file.delete();
+                        goHome();
+                        break;
+                }
             }
-            cursor.close();
-        }
-        else {
-            delete.setVisibility(View.GONE);
-        }
+        };
+        save.setOnClickListener(onClickListener);
+        download.setOnClickListener(onClickListener);
+        delete.setOnClickListener(onClickListener);
 
         AdapterView.OnItemSelectedListener onItemSelectedListener = new AdapterView.OnItemSelectedListener() {
             @Override
@@ -128,60 +198,22 @@ public class AddActivity extends AppCompatActivity {
         };
         position.setOnItemSelectedListener(onItemSelectedListener);
 
-        View.OnClickListener onClickListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                switch (v.getId()){
-                    case R.id.download:
-                        URL = url.getText().toString();
-                        Log.d("URL", URL);
-                        Picasso.with(context)
-                                .load(URL)
-                                .into(image);
-                        break;
+        OpenHelperManager.releaseHelper();
 
-                    case R.id.save:
-                        BitmapDrawable bitmapDrawable = (BitmapDrawable) image.getDrawable();
-                        Bitmap bitmap = bitmapDrawable.getBitmap();
-                        Log.d("BITMAP", String.valueOf(bitmap));
-                        contentValues.put(DataBase.KEY_SURNAME, surname.getText().toString());
-                        contentValues.put(DataBase.KEY_NAME, name.getText().toString());
-                        contentValues.put(DataBase.KEY_PATRONYMIC, patronymic.getText().toString());
-                        contentValues.put(DataBase.KEY_DATA, dateText.getText().toString());
-                        contentValues.put(DataBase.KEY_POSITION, item);
-                        if (id > 0){
-                            db.update("Contacts", contentValues, DataBase.KEY_ID + "=" + id, null);
-                            InternalStorage(bitmap, String.valueOf(id));
-                            Toast toast = Toast.makeText(context, "Контакт изменен", Toast.LENGTH_LONG);
-                            toast.show();
-                        }
-                        else {
-                            long rowID =db.insert("Contacts", null, contentValues);
-                            InternalStorage(bitmap, String.valueOf(rowID));
-                            Log.d("ID", String.valueOf(rowID));
-                            Toast toast = Toast.makeText(context, "Новый контакт добавлен", Toast.LENGTH_LONG);
-                            toast.show();
-                        }
-                        goHome();
-                        break;
-                    case R.id.delete:
-                        db.delete(DataBase.TABLE_NAME, "ID = ?", new String[]{String.valueOf(id)});
-                        Log.d("DELETEID", String.valueOf(id));
-                        File file = new File("/data/data/com.example.hometask/app_imageDir", id + ".png");
-                        file.delete();
-                        Toast toast = Toast.makeText(context, "Контакт удален", Toast.LENGTH_LONG);
-                        toast.show();
-                        goHome();
-                        break;
-                }
-            }
-        };
-        download.setOnClickListener(onClickListener);
-        save.setOnClickListener(onClickListener);
-        delete.setOnClickListener(onClickListener);
-
-
-
+        RuntimeExceptionDao<Client, Integer> runtimeExceptionDao = dataBase.getRuntimeExceptionDao();
+        List<Client> clients1 = Collections.singletonList(runtimeExceptionDao.queryForId(id));
+        Log.d("PROLIST", clients1.toString());
+        if (id > 0){
+            surname.setText(clients1.get(0).getSurname());
+            name.setText(clients1.get(0).getName());
+            patronymic.setText(clients1.get(0).getPatronymic());
+            dateText.setText(clients1.get(0).getDate());
+            Image("/data/data/com.example.hometask/app_imageDir", String.valueOf(clients1.get(0).getId()));
+            Log.d("ID", String.valueOf(id));
+        }
+        else {
+            delete.setVisibility(View.GONE);
+        }
     }
 
     DatePickerDialog.OnDateSetListener d = new DatePickerDialog.OnDateSetListener() {
@@ -230,9 +262,6 @@ public class AddActivity extends AppCompatActivity {
         image.setImageBitmap(bitmap);
     }
     private void goHome(){
-        // закрываем подключение
-        db.close();
-        // переход к главной activity
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
     }

@@ -14,85 +14,62 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.j256.ormlite.android.apptools.OpenHelperManager;
+import com.j256.ormlite.dao.RuntimeExceptionDao;
+
+import java.util.List;
+
 
 public class Client_Fragment extends Fragment {
     DataBase dataBase;
 
+
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        dataBase = new DataBase(getActivity());
-
-        final SQLiteDatabase db = dataBase.getWritableDatabase();
-        Cursor cursor = db.query(DataBase.TABLE_NAME, null, null, null, null, null, null);
+        dataBase = OpenHelperManager.getHelper(getContext(), DataBase.class);
 
         RecyclerView productRecycler = (RecyclerView) inflater.inflate(R.layout.fragment_client, container, false);
 
-        if (cursor.moveToFirst()) {
-            int surnameIndex = cursor.getColumnIndex(DataBase.KEY_SURNAME);
-            int nameIndex = cursor.getColumnIndex(DataBase.KEY_NAME);
-            int patronymicIndex = cursor.getColumnIndex(DataBase.KEY_PATRONYMIC);
-            int positionIndex = cursor.getColumnIndex(DataBase.KEY_POSITION);
-            int dateIndex = cursor.getColumnIndex(DataBase.KEY_DATA);
+        RuntimeExceptionDao<Client, Integer> runtimeExceptionDao = dataBase.getRuntimeExceptionDao();
+        List<Client> clientList = runtimeExceptionDao.queryForAll();
 
+        String[] surname = new String[clientList.size()];
 
+        for (int i=0; i<clientList.size(); i++) {
+            surname[i] = clientList.get(i).getSurname();
+        }
 
-            String[] surname = new String[cursor.getCount()];
+        int[] id = new int[clientList.size()];
 
-            int i =0;
-            do {
-                Log.d("product","2");
-                surname[i] = cursor.getString(surnameIndex);
-                i++;
-            }
-            while (cursor.moveToNext());
+        for (int i=0; i<clientList.size(); i++) {
+            id[i] = clientList.get(i).getId();
+            Log.d("ARRAYID", String.valueOf(id[i]));
+        }
 
-            int[] id = new int[cursor.getCount()];
-            cursor.moveToFirst();
-            i = 0;
-            do {
-                id[i] = cursor.getInt(0);
-                i++;
-            }
-            while (cursor.moveToNext());
+        String[] name = new String[clientList.size()];
 
-            String[] name = new String[cursor.getCount()];
-            cursor.moveToFirst();
-            i = 0;
-            do {
-                name[i] = cursor.getString(nameIndex);
-                i++;
-            }
-            while (cursor.moveToNext());
+        for (int i=0; i<clientList.size(); i++) {
+            name[i] = clientList.get(i).getName();
+        }
 
-            String[] patronymic = new String[cursor.getCount()];
-            cursor.moveToFirst();
-            i = 0;
-            do {
-                patronymic[i] = cursor.getString(patronymicIndex);
-                i++;
-            }
-            while (cursor.moveToNext());
+        String[] patronymic = new String[clientList.size()];
 
+        for (int i=0; i<clientList.size(); i++) {
+            patronymic[i] = clientList.get(i).getPatronymic();
+        }
 
-            String[] date = new String[cursor.getCount()];
-            cursor.moveToFirst();
-            i = 0;
-            do {
-                date[i] = cursor.getString(dateIndex);
-                i++;
-            }
-            while (cursor.moveToNext());
+        String[] position = new String[clientList.size()];
 
+        for (int i=0; i<clientList.size(); i++) {
+            position[i] = clientList.get(i).getPosition();
+        }
 
-            String[] position = new String[cursor.getCount()];
-            cursor.moveToFirst();
-            i = 0;
-            do {
-                position[i] = cursor.getString(positionIndex);
-                i++;
-            }
-            while (cursor.moveToNext());
+        String[] date = new String[clientList.size()];
+
+        for (int i=0; i<clientList.size(); i++) {
+            date[i] = clientList.get(i).getDate();
+        }
 
             Adapter adapter = new Adapter(surname, name, patronymic, position, date, id);
             productRecycler.setAdapter(adapter);
@@ -102,16 +79,12 @@ public class Client_Fragment extends Fragment {
             adapter.setListener(new Adapter.Listener() {
                 @Override
                 public void onClick(int i) {
-                    Cursor cursor = db.query(DataBase.TABLE_NAME, null, "ID = ?", new String[]{String.valueOf(i)}, null, null, null);
-                    if (cursor.moveToFirst()){
-                        Log.d("ID", String.valueOf(i));
-                    }
                     Intent intent = new Intent(getActivity(), AddActivity.class);
                     intent.putExtra(AddActivity.EXTRA_CLIENT_ID, i);
                     getActivity().startActivity(intent);
                 }
             });
-        }
         return productRecycler;
+
     }
 }
