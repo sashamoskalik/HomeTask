@@ -7,6 +7,10 @@
     <string name="date">Выберите дату рождения</string>
     <string name="url">Введите URL</string>
     <string name="errorSurname">Проверьте фамилию</string>
+    <string name="child">Список подчиненных:</string>
+    <string name="addChild">Добавить подчиненного</string>
+    <string name="deleteChild">Удалить выбранного подчиненного</string>
+    <string name="nameChild">Введите имя подчиненного которого хотите добавить</string>
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

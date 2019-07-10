@@ -1,6 +1,10 @@
 package com.example.hometask;
 
+import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.field.ForeignCollectionField;
+
+import java.util.Collection;
 
 public class Client {
     @DatabaseField(generatedId = true)
@@ -15,6 +19,8 @@ public class Client {
     String position;
     @DatabaseField(canBeNull = false)
     String date;
+    @ForeignCollectionField(eager = true)
+    ForeignCollection<Child> childForeignCollectionField;
 
     public Client(){
     }
@@ -73,6 +79,14 @@ public class Client {
 
     public void setDate(String date) {
         this.date = date;
+    }
+
+    public ForeignCollection<Child> getChildForeignCollectionField() {
+        return childForeignCollectionField;
+    }
+
+    public void setChildForeignCollectionField(ForeignCollection<Child> childForeignCollectionField) {
+        this.childForeignCollectionField = childForeignCollectionField;
     }
 
     @Override
