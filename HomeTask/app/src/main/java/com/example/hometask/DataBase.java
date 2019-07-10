@@ -15,9 +15,10 @@ import java.sql.SQLException;
 public class DataBase extends OrmLiteSqliteOpenHelper {
 
     private static final String DATABASE_NAME = "orm.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 4;
 
     private RuntimeExceptionDao<Client, Integer> runtimeExceptionDao = null;
+    private Dao<Child, Integer> childDao = null;
 
     public DataBase(Context context){
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -27,6 +28,7 @@ public class DataBase extends OrmLiteSqliteOpenHelper {
     public void onCreate(SQLiteDatabase sqLiteDatabase, ConnectionSource connectionSource) {
         try {
             TableUtils.createTable(connectionSource, Client.class);
+            TableUtils.createTable(connectionSource, Child.class);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -36,6 +38,7 @@ public class DataBase extends OrmLiteSqliteOpenHelper {
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, ConnectionSource connectionSource, int i, int i1) {
         try {
             TableUtils.dropTable(connectionSource, Client.class, true);
+            TableUtils.dropTable(connectionSource, Child.class, true);
             onCreate(sqLiteDatabase, connectionSource);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -47,5 +50,12 @@ public class DataBase extends OrmLiteSqliteOpenHelper {
             runtimeExceptionDao = getRuntimeExceptionDao(Client.class);
         }
         return runtimeExceptionDao;
+    }
+
+    public Dao<Child, Integer> getDao() throws SQLException{
+        if (childDao == null){
+            childDao = getDao(Child.class);
+        }
+        return childDao;
     }
 }
