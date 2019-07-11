@@ -99,6 +99,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Удалить"/>
+        <ImageView
+            android:id="@+id/imageNew"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
     </LinearLayout>
 
 </ScrollView>
