@@ -16,6 +16,7 @@ class DataBase(context: Context) : OrmLiteSqliteOpenHelper(context, DATABASE_NAM
 
     private var runtimeExceptionDao: RuntimeExceptionDao<Client, Int>? = null
     private var childDao: Dao<Child, Int>? = null
+    private var relationDao: Dao<Relation, Int>? = null
 
     val dao: Dao<Child, Int>?
         @Throws(SQLException::class)
@@ -23,13 +24,14 @@ class DataBase(context: Context) : OrmLiteSqliteOpenHelper(context, DATABASE_NAM
             if (childDao == null) {
                 childDao = getDao(Child::class.java)
             }
-            return childDao
+            return childDao!!
         }
 
     override fun onCreate(sqLiteDatabase: SQLiteDatabase, connectionSource: ConnectionSource) {
         try {
             TableUtils.createTable(connectionSource, Client::class.java)
             TableUtils.createTable(connectionSource, Child::class.java)
+            TableUtils.createTable(connectionSource, Relation::class.java)
         } catch (e: SQLException) {
             e.printStackTrace()
         }
@@ -37,13 +39,6 @@ class DataBase(context: Context) : OrmLiteSqliteOpenHelper(context, DATABASE_NAM
     }
 
     override fun onUpgrade(sqLiteDatabase: SQLiteDatabase, connectionSource: ConnectionSource, i: Int, i1: Int) {
-        try {
-            TableUtils.dropTable<Client, Any>(connectionSource, Client::class.java, true)
-            TableUtils.dropTable<Child, Any>(connectionSource, Child::class.java, true)
-            onCreate(sqLiteDatabase, connectionSource)
-        } catch (e: SQLException) {
-            e.printStackTrace()
-        }
 
     }
 
@@ -51,12 +46,19 @@ class DataBase(context: Context) : OrmLiteSqliteOpenHelper(context, DATABASE_NAM
         if (runtimeExceptionDao == null) {
             runtimeExceptionDao = getRuntimeExceptionDao(Client::class.java)
         }
-        return runtimeExceptionDao
+        return runtimeExceptionDao!!
+    }
+
+    fun getRelationDao(): Dao<Relation, Int>?{
+        if (relationDao == null){
+            relationDao = getDao(Relation::class.java)
+        }
+        return relationDao!!
     }
 
     companion object {
 
         private val DATABASE_NAME = "orm.db"
-        private val DATABASE_VERSION = 7
+        private val DATABASE_VERSION = 8
     }
 }

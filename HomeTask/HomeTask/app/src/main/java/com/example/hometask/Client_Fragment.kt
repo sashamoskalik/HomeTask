@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,7 +13,7 @@ import com.j256.ormlite.android.apptools.OpenHelperManager
 
 
 class Client_Fragment : Fragment() {
-    var dataBase: DataBase? = null
+    lateinit var dataBase: DataBase
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
@@ -24,47 +23,9 @@ class Client_Fragment : Fragment() {
 
         val productRecycler = inflater.inflate(R.layout.fragment_client, container, false) as RecyclerView
 
-        val runtimeExceptionDao = dataBase?.getRuntimeExceptionDao()
+        val runtimeExceptionDao = dataBase.getRuntimeExceptionDao()
         val clientList = runtimeExceptionDao!!.queryForAll()
-
-        val surname = arrayOfNulls<String>(clientList.size)
-
-        for (i in clientList.indices) {
-            surname[i] = clientList[i].surname
-        }
-
-        val id = IntArray(clientList.size)
-
-        for (i in clientList.indices) {
-            id[i] = clientList[i].id
-            Log.d("ARRAYID", id[i].toString())
-        }
-
-        val name = arrayOfNulls<String>(clientList.size)
-
-        for (i in clientList.indices) {
-            name[i] = clientList[i].name
-        }
-
-        val patronymic = arrayOfNulls<String>(clientList.size)
-
-        for (i in clientList.indices) {
-            patronymic[i] = clientList[i].patronymic
-        }
-
-        val position = arrayOfNulls<String>(clientList.size)
-
-        for (i in clientList.indices) {
-            position[i] = clientList[i].position
-        }
-
-        val date = arrayOfNulls<String>(clientList.size)
-
-        for (i in clientList.indices) {
-            date[i] = clientList[i].date
-        }
-
-        val adapter = Adapter(surname, name, patronymic, position, date, id)
+        val adapter = Adapter(clientList)
         productRecycler.adapter = adapter
         val layoutManager = LinearLayoutManager(activity)
         productRecycler.layoutManager = layoutManager

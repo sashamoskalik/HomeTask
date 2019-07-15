@@ -18,7 +18,7 @@ class Client {
     @DatabaseField(canBeNull = false)
     var date: String = ""
     @ForeignCollectionField(eager = true)
-    var childForeignCollectionField: ForeignCollection<Child>? = null
+    var childForeignCollectionField: Collection<Relation>? = null
 
     constructor() {}
 

@@ -26,25 +26,25 @@ import java.util.Calendar
 
 class AddActivity : AppCompatActivity() {
 
-    internal var surname: EditText? = null
-    internal var name: EditText? = null
-    internal var patronymic: EditText? = null
-    internal var url: EditText? = null
-    internal var childName: EditText? = null
-    internal var position: Spinner? = null
-    internal var child: Spinner? = null
-    internal var date: Button? = null
-    internal var save: Button? = null
-    internal var delete: Button? = null
-    internal var addChild: Button? = null
-    internal var deleteChild: Button? = null
-    internal var dateText: TextView? = null
-    internal var childText: TextView? = null
+    lateinit var surname: EditText
+    lateinit var name: EditText
+    lateinit var patronymic: EditText
+    lateinit var url: EditText
+    lateinit var childName: EditText
+    lateinit var position: Spinner
+    lateinit var child: Spinner
+    lateinit var date: Button
+    lateinit var save: Button
+    lateinit var delete: Button
+    lateinit var addChild: Button
+    lateinit var deleteChild: Button
+    lateinit var dateText: TextView
+    lateinit var childText: TextView
     internal var dateAndTime = Calendar.getInstance()
     internal var URL: String = ""
-    internal var dataBase: DataBase? = null
-    internal var context: Context? = null
-    internal var image: ImageView? = null
+    lateinit var dataBase: DataBase
+    lateinit var context: Context
+    lateinit var image: ImageView
 
     internal var array = arrayOf("Junior", "Middle", "Senior")
     internal var item: String = ""
@@ -60,24 +60,24 @@ class AddActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add)
-        surname = findViewById<View>(R.id.surname) as EditText
-        name = findViewById<View>(R.id.name) as EditText
-        patronymic = findViewById<View>(R.id.patronymic) as EditText
-        url = findViewById<View>(R.id.url) as EditText
-        childName = findViewById<View>(R.id.nameChild) as EditText
+        surname = findViewById(R.id.surname)
+        name = findViewById(R.id.name)
+        patronymic = findViewById(R.id.patronymic)
+        url = findViewById(R.id.url)
+        childName = findViewById(R.id.nameChild)
 
-        dateText = findViewById<View>(R.id.dateText) as TextView
-        childText = findViewById<View>(R.id.childText) as TextView
+        dateText = findViewById(R.id.dateText)
+        childText = findViewById(R.id.childText)
 
-        image = findViewById<View>(R.id.imageNew) as ImageView
+        image = findViewById(R.id.imageNew)
 
-        date = findViewById<View>(R.id.dateButton) as Button
-        position = findViewById<View>(R.id.position) as Spinner
-        child = findViewById<View>(R.id.child) as Spinner
-        save = findViewById<View>(R.id.save) as Button
-        delete = findViewById<View>(R.id.delete) as Button
-        addChild = findViewById<View>(R.id.addChild) as Button
-        deleteChild = findViewById<View>(R.id.deleteChild) as Button
+        date = findViewById(R.id.dateButton)
+        position = findViewById(R.id.position)
+        child = findViewById(R.id.child)
+        save = findViewById(R.id.save)
+        delete = findViewById(R.id.delete)
+        addChild = findViewById(R.id.addChild)
+        deleteChild = findViewById(R.id.deleteChild)
 
         context = this@AddActivity
 
@@ -91,15 +91,15 @@ class AddActivity : AppCompatActivity() {
         dataBase = OpenHelperManager.getHelper(this, DataBase::class.java)
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, array)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        position?.adapter = adapter
+        position.adapter = adapter
 
 
         val onClickListener = View.OnClickListener { v ->
-            val runtimeExceptionDao = dataBase?.getRuntimeExceptionDao()
-            val surnameText = surname?.text.toString()
-            val nameText = name?.text.toString()
-            val patronymicText = patronymic?.text.toString()
-            val urlText = url?.text.toString()
+            val runtimeExceptionDao = dataBase.getRuntimeExceptionDao()
+            val surnameText = surname.text.toString()
+            val nameText = name.text.toString()
+            val patronymicText = patronymic.text.toString()
+            val urlText = url.text.toString()
             val word = "[a-zA-Zа-яА-Я]+"
 
             when (v.id) {
@@ -113,11 +113,11 @@ class AddActivity : AppCompatActivity() {
                         val updateBuilder = runtimeExceptionDao!!.updateBuilder()
                         try {
                             updateBuilder.where().eq("id", id)
-                            updateBuilder.updateColumnValue("surname", surname?.text.toString())
-                            updateBuilder.updateColumnValue("name", name?.text.toString())
-                            updateBuilder.updateColumnValue("patronymic", patronymic?.text.toString())
+                            updateBuilder.updateColumnValue("surname", surname.text.toString())
+                            updateBuilder.updateColumnValue("name", name.text.toString())
+                            updateBuilder.updateColumnValue("patronymic", patronymic.text.toString())
                             updateBuilder.updateColumnValue("position", item)
-                            updateBuilder.updateColumnValue("date", dateText?.text.toString())
+                            updateBuilder.updateColumnValue("date", dateText.text.toString())
                             updateBuilder.update()
 
                         } catch (e: SQLException) {
@@ -132,17 +132,16 @@ class AddActivity : AppCompatActivity() {
                                     .into(getTarget(urlText, id.toString()))
                             goHome()
                         } else {
-                            val toast = Toast.makeText(context, "Проверьте url", Toast.LENGTH_LONG)
-                            toast.show()
+                            goHome()
                         }
                     } else {
                         if (urlText.length > 0 && URLUtil.isHttpsUrl(urlText)) {
-                            val client = Client(surname?.text.toString(), name?.text.toString(),
-                                    patronymic?.text.toString(), item, dateText?.text.toString())
+                            val client = Client(surname.text.toString(), name.text.toString(),
+                                    patronymic.text.toString(), item, dateText.text.toString())
                             runtimeExceptionDao!!.create(client)
                             val clients = runtimeExceptionDao.queryForAll()
 
-                            URL = url?.text.toString()
+                            URL = url.text.toString()
                             Log.d("URL", URL)
                             Log.d("CLIENTS", clients[clients.size - 1].id.toString())
                             Picasso.with(context)
@@ -175,12 +174,16 @@ class AddActivity : AppCompatActivity() {
                     try {
                         val client = Client()
                         client.id = id
+                        client.name = name.toString()
 
-                        if (childName?.text.toString().length > 0 && childName?.text.toString().matches(word.toRegex())) {
-                            val childDao = dataBase?.dao
-                            val child = Child(client, childName?.text.toString())
-                            Log.d("CHILDNAME", childName?.text.toString())
+                        if (childName.text.toString().length > 0 && childName.text.toString().matches(word.toRegex())) {
+                            val childDao = dataBase.dao
+                            val relationDao = dataBase.getRelationDao()
+                            val child = Child(childName.text.toString())
                             childDao!!.create(child)
+                            val relation = Relation(client, child)
+                            relationDao?.create(relation)
+                            Log.d("CHILDNAME", childName.text.toString())
                         } else {
                             val toast = Toast.makeText(context, "Проверьте имя подчиненного", Toast.LENGTH_LONG)
                             toast.show()
@@ -195,11 +198,13 @@ class AddActivity : AppCompatActivity() {
 
                 R.id.deleteChild -> {
                     try {
-                        val deleteChildDao = dataBase?.dao
-                        val deleteChild = deleteChildDao!!.queryForAll()
-                        for (i in deleteChild.indices) {
-                            if (childItem == deleteChild[i].nameChild) {
-                                deleteChildDao.deleteById(deleteChild[i].id)
+                        val deleteRelationDao = dataBase.getRelationDao()
+                        val deleteChildDao = dataBase.dao
+                        val deleteRelation = deleteRelationDao?.queryForAll()
+                        for (i in deleteRelation!!.indices) {
+                            if (childItem == deleteRelation[i].child?.nameChild) {
+                                deleteRelationDao.deleteById(deleteRelation[i].id)
+                                deleteChildDao?.deleteById(deleteRelation[i].child?.id)
                             }
                         }
                     } catch (e: SQLException) {
@@ -210,10 +215,10 @@ class AddActivity : AppCompatActivity() {
                 }
             }
         }
-        save?.setOnClickListener(onClickListener)
-        delete?.setOnClickListener(onClickListener)
-        addChild?.setOnClickListener(onClickListener)
-        deleteChild?.setOnClickListener(onClickListener)
+        save.setOnClickListener(onClickListener)
+        delete.setOnClickListener(onClickListener)
+        addChild.setOnClickListener(onClickListener)
+        deleteChild.setOnClickListener(onClickListener)
 
         val onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
@@ -225,7 +230,7 @@ class AddActivity : AppCompatActivity() {
 
             }
         }
-        position?.onItemSelectedListener = onItemSelectedListener
+        position.onItemSelectedListener = onItemSelectedListener
         val onItemSelected = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
                 childItem = parent.getItemAtPosition(position) as String
@@ -236,46 +241,46 @@ class AddActivity : AppCompatActivity() {
 
             }
         }
-        child?.onItemSelectedListener = onItemSelected
+        child.onItemSelectedListener = onItemSelected
 
         OpenHelperManager.releaseHelper()
 
-        val runtimeExceptionDao = dataBase?.getRuntimeExceptionDao()
+        val runtimeExceptionDao = dataBase.getRuntimeExceptionDao()
         val clients1 = listOf(runtimeExceptionDao!!.queryForId(id))
         Log.d("PROLIST", clients1.toString())
         if (id > 0) {
-            surname?.setText(clients1[0].surname)
-            name?.setText(clients1[0].name)
-            patronymic?.setText(clients1[0].patronymic)
-            dateText?.text = clients1[0].date
+            surname.setText(clients1[0].surname)
+            name.setText(clients1[0].name)
+            patronymic.setText(clients1[0].patronymic)
+            dateText.text = clients1[0].date
             Log.d("ID", id.toString())
 
             try {
-                val childIntegerDao = dataBase?.dao
-                val childList = childIntegerDao!!.queryForAll()
-                Log.d("CHILDLIST IN YXXXX", childList.toString())
+                val relationDao = dataBase.getRelationDao()
+                val relationList = relationDao?.queryForAll()
                 val childName = ArrayList<String>()
-                for (i in childList.indices) {
-                    if (clients1[0].id == childList[i].client?.id) {
-                        childName.add(childList[i].nameChild)
+                Log.d("RELATIONSIZE", relationList?.size.toString())
+                for (i in relationList!!.indices) {
+                    if (clients1[0].id == relationList[i].client?.id) {
+                        childName.add(relationList[i].child?.nameChild.toString())
                     }
                 }
 
                 val childAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, childName)
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                child?.adapter = childAdapter
+                child.adapter = childAdapter
 
             } catch (e: SQLException) {
                 e.printStackTrace()
             }
 
         } else {
-            delete?.visibility = View.GONE
-            addChild?.visibility = View.GONE
-            deleteChild?.visibility = View.GONE
-            childName?.visibility = View.GONE
-            child?.visibility = View.GONE
-            childText?.visibility = View.GONE
+            delete.visibility = View.GONE
+            addChild.visibility = View.GONE
+            deleteChild.visibility = View.GONE
+            childName.visibility = View.GONE
+            child.visibility = View.GONE
+            childText.visibility = View.GONE
         }
     }
 
@@ -285,7 +290,7 @@ class AddActivity : AppCompatActivity() {
     }
 
     private fun setInitialDate() {
-        dateText?.text = DateUtils.formatDateTime(this,
+        dateText.text = DateUtils.formatDateTime(this,
                 dateAndTime.timeInMillis,
                 DateUtils.FORMAT_SHOW_DATE or DateUtils.FORMAT_SHOW_YEAR)
     }

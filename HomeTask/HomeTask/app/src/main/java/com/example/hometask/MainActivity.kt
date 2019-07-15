@@ -27,12 +27,12 @@ import java.io.File
 
 class MainActivity : AppCompatActivity() {
 
-    var addButton: Button? = null
+    lateinit var addButton: Button
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        addButton = findViewById<View>(R.id.addButton) as Button
+        addButton = findViewById(R.id.addButton)
 
         Log.d("MAIN", "MAIN")
 
@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        addButton?.setOnClickListener(onClickListener)
+        addButton.setOnClickListener(onClickListener)
 
     }
 
